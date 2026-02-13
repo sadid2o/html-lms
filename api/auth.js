@@ -1,7 +1,4 @@
-// Vercel Serverless Function — Admin Authentication
-// Validates credentials against environment variables
-
-module.exports = async (req, res) => {
+export default function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -31,7 +28,6 @@ module.exports = async (req, res) => {
     }
 
     if (email === adminEmail && password === adminPassword) {
-      // Generate a simple session token
       const token = Buffer.from(`${email}:${Date.now()}:eduvance_admin_secret`).toString('base64');
       return res.status(200).json({
         success: true,
@@ -46,4 +42,4 @@ module.exports = async (req, res) => {
     console.error('Auth error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
-};
+}
