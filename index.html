@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eduvance — Admin Login</title>
+  <meta name="description" content="Eduvance LMS Admin Panel — Secure login for course management">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Login Wrapper -->
+  <div class="login-wrapper">
+    <div class="login-card animate-scale-in">
+      <!-- Logo -->
+      <div class="logo">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+
+      <h1>Eduvance</h1>
+      <p class="subtitle">Admin Panel — Sign in to manage your courses</p>
+
+      <!-- Error Alert -->
+      <div class="alert-error" id="loginError">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span id="errorMessage"></span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" autocomplete="off">
+        <div class="form-floating">
+          <input type="email" class="form-control" id="loginEmail" placeholder="admin@example.com" required>
+          <label for="loginEmail"><i class="bi bi-envelope me-2"></i>Email Address</label>
+        </div>
+
+        <div class="form-floating">
+          <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+          <label for="loginPassword"><i class="bi bi-lock me-2"></i>Password</label>
+        </div>
+
+        <button type="submit" class="btn-primary-custom ripple mt-3" id="loginBtn">
+          <span class="spinner"></span>
+          <span class="btn-text">Sign In</span>
+        </button>
+      </form>
+
+      <p class="text-center mt-4" style="color: var(--text-muted); font-size: 0.8rem;">
+        <i class="bi bi-shield-lock me-1"></i> Protected admin access only
+      </p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) {
+      window.location.href = 'dashboard.html';
+    }
+
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const errorMessage = document.getElementById('errorMessage');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      // Show loading
+      loginBtn.classList.add('loading');
+      loginBtn.disabled = true;
+      loginError.classList.remove('show');
+
+      const result = await Auth.login(email, password);
+
+      if (result.success) {
+        // Success animation
+        loginBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i> Welcome!';
+        loginBtn.style.background = 'var(--gradient-accent)';
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 800);
+      } else {
+        // Show error
+        errorMessage.textContent = result.message || 'Invalid credentials';
+        loginError.classList.add('show');
+        loginBtn.classList.remove('loading');
+        loginBtn.disabled = false;
+
+        // Shake animation
+        loginBtn.style.animation = 'none';
+        loginBtn.offsetHeight; // trigger reflow
+        loginBtn.style.animation = '';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "eduvance-admin",
+  "version": "1.0.0",
+  "description": "Eduvance LMS Admin Panel",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'"
+  }
+}
