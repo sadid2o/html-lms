@@ -3,8 +3,6 @@
 // ================================================
 
 // Firebase config — these values are safe for client-side
-
-
 // They are restricted by Firebase Security Rules
 const firebaseConfig = {
     apiKey: "AIzaSyCnOKFxljT897IuSqwdat9cs8orSgQtqHs",
@@ -12,7 +10,8 @@ const firebaseConfig = {
     projectId: "diploma-result-app-1",
     storageBucket: "diploma-result-app-1.firebasestorage.app",
     messagingSenderId: "167287408836",
-    appId: "1:167287408836:web:e0bfd634fa8c66a66be191"
+    appId: "1:167287408836:web:e0bfd634fa8c66a66be191",
+    measurementId: "G-PLFFHMB76Y"
 };
 
 // Initialize Firebase
@@ -150,4 +149,3 @@ const FirestoreDB = {
         };
     }
 };
-
