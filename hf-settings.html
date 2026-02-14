@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduvance — Settings</title>
+    <meta name="description" content="Eduvance LMS — Hugging Face integration settings">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .settings-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .settings-card h5 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-card h5 i {
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .token-input-wrap {
+            position: relative;
+        }
+
+        .token-input-wrap input {
+            padding-right: 48px;
+        }
+
+        .token-toggle-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+        }
+
+        .token-toggle-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .connection-status {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .connection-status.success {
+            background: rgba(0, 210, 106, 0.1);
+            border: 1px solid rgba(0, 210, 106, 0.3);
+            color: #00d26a;
+        }
+
+        .connection-status.error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+        }
+
+        .dataset-list {
+            margin-top: 20px;
+        }
+
+        .dataset-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: var(--bg-section);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: var(--transition-fast);
+        }
+
+        .dataset-item:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .dataset-item .d-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .dataset-item .d-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .dataset-item .d-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .d-badge.private {
+            background: rgba(255, 159, 67, 0.15);
+            color: #ff9f43;
+        }
+
+        .d-badge.public {
+            background: rgba(0, 210, 106, 0.15);
+            color: #00d26a;
+        }
+
+        .info-box {
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(108, 92, 231, 0.08);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .info-box i {
+            color: var(--primary);
+        }
+
+        .btn-test {
+            background: var(--bg-section);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-test:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-test .spinner-border {
+            width: 16px;
+            height: 16px;
+            border-width: 2px;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading...</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-layout">
+        <!-- Sidebar Toggle (Mobile) -->
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <span class="brand-text">Eduvance</span>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Collapse sidebar">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a href="dashboard.html" class="nav-link">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="course-editor.html" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Create Course</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="category-manager.html" class="nav-link">
+                        <i class="bi bi-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="student-manager.html" class="nav-link">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Students</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="announcements.html" class="nav-link">
+                        <i class="bi bi-megaphone-fill"></i>
+                        <span>Announcements</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hf-settings.html" class="nav-link active">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn">
+                        <i class="bi bi-box-arrow-left"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="page-title">
+                    <i class="bi bi-gear" style="margin-right:8px; opacity:0.7"></i> Settings
+                </div>
+                <div class="admin-info"></div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+
+                <!-- HF Token Card -->
+                <div class="settings-card">
+                    <h5><i class="bi bi-box-fill" style="color:#FFD43B"></i> Hugging Face Integration</h5>
+
+                    <div class="info-box mb-4">
+                        <i class="bi bi-info-circle"></i>
+                        Hugging Face dataset থেকে directly course content import করুন। আপনার private datasets
+                        access করতে একটি <strong>Read</strong> token প্রয়োজন।
+                        <a href="https://huggingface.co/settings/tokens" target="_blank"
+                            style="color:var(--primary)">Token তৈরি করুন →</a>
+                    </div>
+
+                    <label class="form-label-custom">API Token</label>
+                    <div class="token-input-wrap">
+                        <input type="password" class="form-custom" id="hfToken"
+                            placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx">
+                        <button class="token-toggle-btn" onclick="toggleTokenVisibility()" title="Show/Hide">
+                            <i class="bi bi-eye" id="tokenEyeIcon"></i>
+                        </button>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button class="btn-test" id="testBtn" onclick="testConnection()">
+                            <i class="bi bi-plug"></i> <span>Test Connection</span>
+                        </button>
+                        <button class="btn-gradient" id="saveBtn" onclick="saveToken()">
+                            <i class="bi bi-check-lg"></i> Save Token
+                        </button>
+                    </div>
+
+                    <!-- Connection Status -->
+                    <div class="connection-status" id="connectionStatus"></div>
+                </div>
+
+                <!-- Connected Datasets -->
+                <div class="settings-card" id="datasetsCard" style="display:none;">
+                    <h5><i class="bi bi-database"></i> Your Datasets</h5>
+                    <div id="datasetsList" class="dataset-list"></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/hf-api.js"></script>
+    <script>
+        // ---- Sidebar Toggle ----
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+            const saved = localStorage.getItem('eduvance-sidebar');
+            if (saved === 'collapsed') {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+            });
+
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            sidebarCloseBtn.addEventListener('click', () => {
+                if (window.innerWidth >= 769) {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    localStorage.setItem('eduvance-sidebar', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+                } else {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('active');
+                }
+            });
+        }
+
+        // ---- Logout ----
+        function setupLogout() {
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (confirm('Logout?')) { localStorage.removeItem('eduvance-admin'); location.href = 'index.html'; }
+            });
+        }
+
+        // ---- Token Visibility Toggle ----
+        function toggleTokenVisibility() {
+            const input = document.getElementById('hfToken');
+            const icon = document.getElementById('tokenEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+
+        // ---- Test Connection ----
+        async function testConnection() {
+            const token = document.getElementById('hfToken').value.trim();
+            if (!token) { showToast('Please enter a token', 'error'); return; }
+
+            const btn = document.getElementById('testBtn');
+            const statusEl = document.getElementById('connectionStatus');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border"></span> Testing...';
+
+            try {
+                const result = await HuggingFaceAPI.validateToken(token);
+                if (result.valid) {
+                    statusEl.className = 'connection-status success';
+                    statusEl.innerHTML = `<i class="bi bi-check-circle"></i> Connected as <strong>${result.fullName}</strong> (@${result.username})`;
+                    statusEl.style.display = 'block';
+
+                    // Load datasets
+                    await loadDatasets(token);
+                } else {
+                    statusEl.className = 'connection-status error';
+                    statusEl.innerHTML = `<i class="bi bi-x-circle"></i> Connection failed: ${result.error}`;
+                    statusEl.style.display = 'block';
+                    document.getElementById('datasetsCard').style.display = 'none';
+                }
+            } catch (e) {
+                statusEl.className = 'connection-status error';
+                statusEl.innerHTML = `<i class="bi bi-x-circle"></i> Error: ${e.message}`;
+                statusEl.style.display = 'block';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-plug"></i> <span>Test Connection</span>';
+        }
+
+        // ---- Load Datasets ----
+        async function loadDatasets(token) {
+            try {
+                const datasets = await HuggingFaceAPI.listDatasets(token);
+                const container = document.getElementById('datasetsList');
+                const card = document.getElementById('datasetsCard');
+
+                if (datasets.length === 0) {
+                    container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">No datasets found.</div>';
+                    card.style.display = 'block';
+                    return;
+                }
+
+                container.innerHTML = datasets.map(d => `
+                    <div class="dataset-item">
+                        <div>
+                            <div class="d-name"><i class="bi bi-database" style="opacity:0.5; margin-right:6px;"></i>${escapeHTML(d.name)}</div>
+                            <div class="d-meta" style="margin-top:4px;">
+                                <span>${d.id}</span>
+                            </div>
+                        </div>
+                        <div class="d-meta">
+                            <span class="d-badge ${d.private ? 'private' : 'public'}">${d.private ? 'Private' : 'Public'}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                card.style.display = 'block';
+            } catch (e) {
+                console.error('Load datasets error:', e);
+            }
+        }
+
+        // ---- Save Token ----
+        async function saveToken() {
+            const token = document.getElementById('hfToken').value.trim();
+            if (!token) { showToast('Please enter a token', 'error'); return; }
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+            try {
+                // Validate first
+                const result = await HuggingFaceAPI.validateToken(token);
+                if (!result.valid) {
+                    showToast('Invalid token! Please check and try again.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Token';
+                    return;
+                }
+
+                // Save to Firebase
+                await FirestoreDB.saveSettings('huggingface', {
+                    token: token,
+                    username: result.username
+                });
+
+                showToast('Token saved successfully!', 'success');
+
+                // Show connection status
+                const statusEl = document.getElementById('connectionStatus');
+                statusEl.className = 'connection-status success';
+                statusEl.innerHTML = `<i class="bi bi-check-circle"></i> Connected as <strong>${result.fullName}</strong> (@${result.username})`;
+                statusEl.style.display = 'block';
+
+                await loadDatasets(token);
+            } catch (e) {
+                showToast('Failed to save: ' + e.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Token';
+        }
+
+        // ---- Load saved token on page load ----
+        async function loadSavedToken() {
+            try {
+                const settings = await FirestoreDB.getSettings('huggingface');
+                if (settings?.token) {
+                    document.getElementById('hfToken').value = settings.token;
+                    // Auto-test connection
+                    await testConnection();
+                }
+            } catch (e) {
+                console.error('Load settings error:', e);
+            }
+        }
+
+        // ---- Utility ----
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', info: 'bi-info-circle-fill' };
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<i class="bi ${icons[type] || icons.info}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ---- Init ----
+        document.addEventListener('DOMContentLoaded', () => {
+            initSidebar();
+            setupLogout();
+            loadSavedToken();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

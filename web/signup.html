@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — Eduvance</title>
+    <meta name="description" content="Create your Eduvance account to start learning">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Theme Toggle -->
+    <button class="auth-theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <i class="bi bi-moon-fill" id="themeIcon"></i>
+    </button>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div style="text-align:center; margin-bottom:24px;">
+                <div
+                    style="width:52px;height:52px;background:linear-gradient(135deg,#6C5CE7,#A29BFE);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                    <i class="bi bi-mortarboard-fill" style="font-size:1.6rem;color:#fff"></i>
+                </div>
+                <h2>Create Account</h2>
+                <p class="auth-subtitle">Start your learning journey</p>
+            </div>
+
+            <div id="authMessage" class="auth-message"></div>
+
+            <form id="signupForm" onsubmit="return handleSignup(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-input" id="name" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-input" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-input" id="password" placeholder="Min 6 characters" required
+                        minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat password"
+                        required minlength="6">
+                </div>
+                <button type="submit" class="btn-auth" id="signupBtn">
+                    <i class="bi bi-person-plus"></i> Sign Up
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="login.html">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Theme toggle
+        function initTheme() {
+            const saved = localStorage.getItem('eduvance-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('eduvance-theme', next);
+            updateThemeIcon(next);
+        }
+        function updateThemeIcon(theme) {
+            const icon = theme === 'light' ? 'bi-sun-fill' : 'bi-moon-fill';
+            document.getElementById('themeIcon').className = 'bi ' + icon;
+        }
+        initTheme();
+
+        if (UserAuth.isLoggedIn()) { window.location.href = 'index.html'; }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const msgEl = document.getElementById('authMessage');
+            const btn = document.getElementById('signupBtn');
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (password !== confirm) {
+                msgEl.className = 'auth-message error';
+                msgEl.textContent = 'Passwords do not match';
+                msgEl.style.display = 'block';
+                return false;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Creating account...';
+            msgEl.style.display = 'none';
+
+            try {
+                const result = await UserAuth.signup(name, email, password);
+                if (result.success) {
+                    msgEl.className = 'auth-message success';
+                    msgEl.textContent = 'Account created! Redirecting...';
+                    msgEl.style.display = 'block';
+                    setTimeout(() => window.location.href = 'index.html', 800);
+                } else {
+                    msgEl.className = 'auth-message error';
+                    msgEl.textContent = result.message;
+                    msgEl.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-person-plus"></i> Sign Up';
+                }
+            } catch (err) {
+                msgEl.className = 'auth-message error';
+                msgEl.textContent = 'Something went wrong. Please try again.';
+                msgEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-person-plus"></i> Sign Up';
+            }
+            return false;
+        }
+    </script>
+</body>
+
+</html>

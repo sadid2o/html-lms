@@ -1,14 +1,7 @@
 // ================================================
 // Authentication — Eduvance LMS Admin
 // ================================================
-// Client-side auth — credentials are set here directly.
-// For a single-admin panel, this is secure enough.
-// Change the email and password below to your own.
-
-const ADMIN_CREDENTIALS = {
-    email: "sadid.lm10@gmail.com",
-    password: "sadid1218"
-};
+// Credentials stored in Firebase Firestore (admin_config collection)
 
 const Auth = {
     TOKEN_KEY: 'eduvance_admin_token',
@@ -25,18 +18,44 @@ const Auth = {
         return data ? JSON.parse(data) : null;
     },
 
-    // Login — checks credentials locally
+    // Check if admin setup has been completed
+    async isSetupDone() {
+        try {
+            const doc = await db.collection('admin_config').doc('credentials').get();
+            return doc.exists;
+        } catch (error) {
+            console.error('Setup check error:', error);
+            return false;
+        }
+    },
+
+    // Create admin credentials (first-time setup)
+    async setupAdmin(email, password) {
+        try {
+            await db.collection('admin_config').doc('credentials').set({
+                email: email,
+                password: password,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return { success: true };
+        } catch (error) {
+            console.error('Setup error:', error);
+            return { success: false, message: 'Failed to save credentials. Check Firebase connection.' };
+        }
+    },
+
+    // Login — checks credentials from Firebase
     async login(email, password) {
         try {
-            // Small delay to simulate server call (feels more natural)
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const doc = await db.collection('admin_config').doc('credentials').get();
 
-            if (!email || !password) {
-                return { success: false, message: 'Email and password are required' };
+            if (!doc.exists) {
+                return { success: false, message: 'Admin not configured. Please run setup first.' };
             }
 
-            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-                // Generate session token
+            const creds = doc.data();
+
+            if (email === creds.email && password === creds.password) {
                 const token = btoa(`${email}:${Date.now()}:eduvance_admin`);
                 sessionStorage.setItem(this.TOKEN_KEY, token);
                 sessionStorage.setItem(this.ADMIN_KEY, JSON.stringify({ email: email }));
@@ -46,7 +65,7 @@ const Auth = {
             }
         } catch (error) {
             console.error('Login error:', error);
-            return { success: false, message: 'Authentication failed. Please try again.' };
+            return { success: false, message: 'Failed to connect to database. Check your internet connection.' };
         }
     },
 
@@ -57,7 +76,7 @@ const Auth = {
         window.location.href = 'index.html';
     },
 
-    // Route guard — redirect to login if not authenticated
+    // Route guard
     requireAuth() {
         if (!this.isLoggedIn()) {
             window.location.href = 'index.html';

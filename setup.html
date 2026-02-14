@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduvance — Admin Setup</title>
+    <meta name="description" content="Eduvance LMS — First-time admin setup">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-card animate-scale-in">
+            <div class="logo">
+                <i class="bi bi-gear-fill"></i>
+            </div>
+
+            <h1>Admin Setup</h1>
+            <p class="subtitle">First-time setup — Create your admin credentials</p>
+
+            <div class="alert-error" id="setupError">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <div class="alert-error" id="setupSuccess"
+                style="background:rgba(0,206,201,0.15); border-color:rgba(0,206,201,0.3); color:var(--accent);">
+                <i class="bi bi-check-circle me-2"></i>
+                <span id="successMessage"></span>
+            </div>
+
+            <form id="setupForm" autocomplete="off">
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="adminEmail" placeholder="admin@example.com" required>
+                    <label for="adminEmail"><i class="bi bi-envelope me-2"></i>Admin Email</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Password" required
+                        minlength="6">
+                    <label for="adminPassword"><i class="bi bi-lock me-2"></i>Password (min 6 chars)</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm" required>
+                    <label for="confirmPassword"><i class="bi bi-lock-fill me-2"></i>Confirm Password</label>
+                </div>
+
+                <button type="submit" class="btn-primary-custom ripple mt-3" id="setupBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Create Admin Account</span>
+                </button>
+            </form>
+
+            <p class="text-center mt-4" style="color: var(--text-muted); font-size: 0.8rem;">
+                <i class="bi bi-info-circle me-1"></i> This setup can only be done once
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        // If setup is already done, redirect to login
+        (async () => {
+            try {
+                const done = await Auth.isSetupDone();
+                if (done) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+
+        const setupForm = document.getElementById('setupForm');
+        const setupBtn = document.getElementById('setupBtn');
+        const setupError = document.getElementById('setupError');
+        const setupSuccess = document.getElementById('setupSuccess');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        setupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            setupError.classList.remove('show');
+            setupSuccess.classList.remove('show');
+
+            if (password !== confirm) {
+                errorMessage.textContent = 'Passwords do not match';
+                setupError.classList.add('show');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorMessage.textContent = 'Password must be at least 6 characters';
+                setupError.classList.add('show');
+                return;
+            }
+
+            // Check if already setup
+            const alreadyDone = await Auth.isSetupDone();
+            if (alreadyDone) {
+                errorMessage.textContent = 'Admin already configured. Redirecting to login...';
+                setupError.classList.add('show');
+                setTimeout(() => window.location.href = 'index.html', 2000);
+                return;
+            }
+
+            setupBtn.classList.add('loading');
+            setupBtn.disabled = true;
+
+            const result = await Auth.setupAdmin(email, password);
+
+            if (result.success) {
+                successMessage.textContent = 'Admin account created! Redirecting to login...';
+                setupSuccess.classList.add('show');
+                setupBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i> Done!';
+                setupBtn.style.background = 'var(--gradient-accent)';
+                setTimeout(() => window.location.href = 'index.html', 2000);
+            } else {
+                errorMessage.textContent = result.message;
+                setupError.classList.add('show');
+                setupBtn.classList.remove('loading');
+                setupBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

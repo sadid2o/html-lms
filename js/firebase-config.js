@@ -147,5 +147,126 @@ const FirestoreDB = {
             totalVideos,
             totalPdfs
         };
+    },
+
+    // === CATEGORIES ===
+    async getAllCategories() {
+        const snapshot = await db.collection('categories').orderBy('order', 'asc').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async createCategory(data) {
+        const docRef = await db.collection('categories').add({
+            ...data,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return docRef.id;
+    },
+
+    async updateCategory(categoryId, data) {
+        await db.collection('categories').doc(categoryId).update(data);
+    },
+
+    async deleteCategory(categoryId) {
+        await db.collection('categories').doc(categoryId).delete();
+    },
+
+    // === STUDENTS ===
+    async getAllStudents() {
+        const snapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async getStudentCount() {
+        const snapshot = await db.collection('users').get();
+        return snapshot.size;
+    },
+
+    async getRecentStudents(limit = 10) {
+        const snapshot = await db.collection('users').orderBy('createdAt', 'desc').limit(limit).get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async updateStudent(userId, data) {
+        await db.collection('users').doc(userId).update(data);
+    },
+
+    async deleteStudent(userId) {
+        // Delete student document
+        await db.collection('users').doc(userId).delete();
+        // Note: Enrollments and progress will remain for data integrity
+        // You can add cascade delete if needed
+    },
+
+    // === ENROLLMENTS (Admin) ===
+    async getAllEnrollments() {
+        const snapshot = await db.collection('enrollments').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async getEnrollmentCount() {
+        const snapshot = await db.collection('enrollments').get();
+        return snapshot.size;
+    },
+
+    async getEnrollmentsByCourse(courseId) {
+        const snapshot = await db.collection('enrollments').where('courseId', '==', courseId).get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async getPopularCourses(limit = 5) {
+        const enrollments = await this.getAllEnrollments();
+        const countMap = {};
+        enrollments.forEach(e => {
+            countMap[e.courseId] = (countMap[e.courseId] || 0) + 1;
+        });
+        const sorted = Object.entries(countMap).sort((a, b) => b[1] - a[1]).slice(0, limit);
+        const results = [];
+        for (const [courseId, count] of sorted) {
+            const course = await this.getCourse(courseId);
+            if (course) results.push({ ...course, enrollmentCount: count });
+        }
+        return results;
+    },
+
+    // === ANNOUNCEMENTS ===
+    async getAllAnnouncements() {
+        const snapshot = await db.collection('announcements').orderBy('createdAt', 'desc').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    async createAnnouncement(data) {
+        const docRef = await db.collection('announcements').add({
+            ...data,
+            active: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return docRef.id;
+    },
+
+    async updateAnnouncement(annId, data) {
+        await db.collection('announcements').doc(annId).update(data);
+    },
+
+    async deleteAnnouncement(annId) {
+        await db.collection('announcements').doc(annId).delete();
+    },
+
+    async toggleAnnouncement(annId, active) {
+        await db.collection('announcements').doc(annId).update({ active });
+    },
+
+    // === SETTINGS ===
+    async getSettings(key) {
+        const doc = await db.collection('settings').doc(key).get();
+        return doc.exists ? doc.data() : null;
+    },
+
+    async saveSettings(key, data) {
+        await db.collection('settings').doc(key).set({
+            ...data,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
     }
 };
+

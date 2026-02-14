@@ -6,12 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eduvance — Course Editor</title>
     <meta name="description" content="Eduvance LMS — Create and edit courses with sections and content">
-
-    <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link href="css/style.css" rel="stylesheet">
 </head>
 
@@ -42,6 +38,10 @@
                     <i class="bi bi-mortarboard-fill"></i>
                 </div>
                 <span class="brand-text">Eduvance</span>
+                <!-- Desktop sidebar collapse button -->
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Collapse sidebar">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
             </div>
 
             <nav class="sidebar-nav">
@@ -57,6 +57,30 @@
                         <span>Create Course</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="category-manager.html" class="nav-link">
+                        <i class="bi bi-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="student-manager.html" class="nav-link">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Students</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="announcements.html" class="nav-link">
+                        <i class="bi bi-megaphone-fill"></i>
+                        <span>Announcements</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hf-settings.html" class="nav-link">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -70,7 +94,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" id="mainContent">
             <!-- Top Header -->
             <header class="top-header">
                 <div class="page-title">
@@ -86,24 +110,50 @@
             <!-- Page Content -->
             <div class="page-content">
                 <!-- Course Details Section -->
-                <div class="editor-section delay-1"
-                    style="animation-delay:0.1s; opacity:1; animation:fadeInUp 0.5s ease forwards;">
+                <div class="editor-section" style="opacity:1; animation:fadeInUp 0.5s ease forwards;">
                     <h5><i class="bi bi-info-circle"></i> Course Details</h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label-custom">Course Name *</label>
                             <input type="text" class="form-custom" id="courseName"
                                 placeholder="e.g. Web Development Masterclass">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Category</label>
+                            <select class="form-custom" id="courseCategory">
+                                <option value="">— Select Category —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label-custom">Thumbnail URL</label>
                             <input type="url" class="form-custom" id="courseThumbnail"
                                 placeholder="https://example.com/image.jpg">
                         </div>
                         <div class="col-12">
-                            <label class="form-label-custom">Description</label>
-                            <textarea class="form-custom" id="courseDescription"
-                                placeholder="Write a brief description of this course..."></textarea>
+                            <label class="form-label-custom">Description (HTML supported)</label>
+                            <!-- Rich Text Editor Toolbar -->
+                            <div class="editor-toolbar">
+                                <button type="button" class="toolbar-btn" onclick="execCmd('bold')" title="Bold"><i
+                                        class="bi bi-type-bold"></i></button>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('italic')" title="Italic"><i
+                                        class="bi bi-type-italic"></i></button>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('underline')"
+                                    title="Underline"><i class="bi bi-type-underline"></i></button>
+                                <span class="toolbar-divider"></span>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('formatBlock', 'h3')"
+                                    title="Heading"><i class="bi bi-type-h3"></i></button>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('insertUnorderedList')"
+                                    title="Bullet List"><i class="bi bi-list-ul"></i></button>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('insertOrderedList')"
+                                    title="Numbered List"><i class="bi bi-list-ol"></i></button>
+                                <span class="toolbar-divider"></span>
+                                <button type="button" class="toolbar-btn" onclick="insertLink()" title="Insert Link"><i
+                                        class="bi bi-link-45deg"></i></button>
+                                <button type="button" class="toolbar-btn" onclick="execCmd('removeFormat')"
+                                    title="Remove Formatting"><i class="bi bi-eraser"></i></button>
+                            </div>
+                            <div class="rich-editor" id="courseDescription" contenteditable="true"
+                                placeholder="Write a description with formatting..."></div>
                         </div>
                     </div>
 
@@ -114,38 +164,93 @@
                     </div>
                 </div>
 
-                <!-- Sections Area (only visible after course is saved) -->
+                <!-- Sections Area -->
                 <div id="sectionsArea" style="display:none;">
-                    <!-- Section Header -->
-                    <div class="editor-section delay-2"
-                        style="opacity:1; animation:fadeInUp 0.5s ease forwards; animation-delay:0.2s;">
+                    <div class="editor-section" style="opacity:1; animation:fadeInUp 0.5s ease forwards;">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <h5 class="mb-0"><i class="bi bi-collection"></i> Sections & Content</h5>
-                            <button class="btn-gradient accent" onclick="addSection()">
-                                <i class="bi bi-plus-lg"></i> Add Section
-                            </button>
+                            <h5 class="mb-0"><i class="bi bi-collection"></i> Sections &amp; Content</h5>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn-outline-custom" onclick="openHFBrowser()" style="font-size:0.85rem;">
+                                    <i class="bi bi-box-fill" style="color:#FFD43B"></i> Import from HF
+                                </button>
+                                <button class="btn-gradient accent" onclick="addSection()">
+                                    <i class="bi bi-plus-lg"></i> Add Section
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Sections Container -->
-                    <div id="sectionsContainer">
-                        <!-- Dynamic sections render here -->
-                    </div>
+                    <div id="sectionsContainer"></div>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- HF File Browser Modal -->
+    <div class="modal fade" id="hfBrowserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content"
+                style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px;">
+                <div class="modal-header" style="border-bottom:1px solid var(--border-color); padding:20px 24px;">
+                    <h5 class="modal-title" style="font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="bi bi-box-fill" style="color:#FFD43B"></i>
+                        <span id="hfModalTitle">Import from Hugging Face</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:24px; min-height:400px;">
+                    <!-- Breadcrumb -->
+                    <div id="hfBreadcrumb" style="margin-bottom:16px; display:none;">
+                        <nav style="font-size:0.85rem;"></nav>
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="hfLoading" style="text-align:center; padding:60px 0; display:none;">
+                        <div class="loading-spinner" style="margin:0 auto 16px;"></div>
+                        <div style="color:var(--text-muted); font-size:0.9rem;">Loading...</div>
+                    </div>
+
+                    <!-- No Token Warning -->
+                    <div id="hfNoToken" style="display:none; text-align:center; padding:40px 0;">
+                        <i class="bi bi-key"
+                            style="font-size:3rem; color:var(--text-muted); display:block; margin-bottom:12px;"></i>
+                        <h6 style="color:var(--text-primary);">No HF Token Found</h6>
+                        <p style="color:var(--text-muted); font-size:0.85rem;">Please configure your Hugging Face token
+                            in Settings first.</p>
+                        <a href="hf-settings.html" class="btn-gradient" style="display:inline-flex; font-size:0.85rem;">
+                            <i class="bi bi-gear"></i> Go to Settings
+                        </a>
+                    </div>
+
+                    <!-- Dataset List View -->
+                    <div id="hfDatasetList" style="display:none;"></div>
+
+                    <!-- Folder/File List View -->
+                    <div id="hfFileList" style="display:none;"></div>
+
+                    <!-- Import Preview View -->
+                    <div id="hfImportPreview" style="display:none;"></div>
+                </div>
+                <div class="modal-footer" id="hfModalFooter"
+                    style="border-top:1px solid var(--border-color); padding:16px 24px; display:none;">
+                    <button type="button" class="btn-outline-custom" data-bs-dismiss="modal"
+                        style="font-size:0.85rem;">Cancel</button>
+                    <button type="button" class="btn-gradient" id="hfImportBtn" onclick="executeHFImport()"
+                        style="font-size:0.85rem;">
+                        <i class="bi bi-download"></i> Import Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-    <!-- App Scripts -->
-    <script src="js/auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/hf-api.js"></script>
     <script src="js/course-editor.js"></script>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

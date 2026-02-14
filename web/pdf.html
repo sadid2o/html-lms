@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer — Eduvance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        .pdf-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: 20px;
+        }
+
+        .pdf-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .pdf-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .pdf-page-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        #pdfCanvas {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar-edu">
+        <a href="index.html" class="navbar-brand">
+            <div class="logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <span>Eduvance</span>
+        </a>
+        <div style="flex:1;"></div>
+        <button onclick="history.back()" class="ctrl-btn"
+            style="color:var(--text-secondary); font-size:0.9rem; width:auto; padding:0 12px;">
+            <i class="bi bi-arrow-left" style="margin-right:4px;"></i> Back
+        </button>
+    </nav>
+
+    <div class="pdf-page">
+        <div class="pdf-layout">
+            <div class="pdf-main">
+                <!-- Toolbar -->
+                <div class="pdf-toolbar">
+                    <h4 style="flex:0.5;"><i class="bi bi-file-earmark-pdf-fill"></i> <span
+                            id="pdfTitle">Loading...</span></h4>
+
+                    <!-- Controls -->
+                    <div class="pdf-controls" id="pdfControls" style="display:none;">
+                        <button class="pdf-btn" onclick="onPrevPage()"><i class="bi bi-chevron-left"></i></button>
+                        <span class="pdf-page-info">
+                            <span id="pageNum">--</span> / <span id="pageCount">--</span>
+                        </span>
+                        <button class="pdf-btn" onclick="onNextPage()"><i class="bi bi-chevron-right"></i></button>
+                        <div style="width:1px;height:20px;background:var(--border-color);margin:0 8px;"></div>
+                        <button class="pdf-btn" onclick="onZoomOut()"><i class="bi bi-dash"></i></button>
+                        <button class="pdf-btn" onclick="onZoomIn()"><i class="bi bi-plus"></i></button>
+                    </div>
+
+                    <div style="flex:1;"></div>
+
+                    <a id="downloadBtn" href="#" target="_blank" download class="btn-primary-custom"
+                        style="padding:8px 20px; font-size:0.85rem;">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                </div>
+
+                <!-- PDF Preview -->
+                <div class="pdf-preview-area" id="pdfArea"
+                    style="overflow:auto; display:flex; justify-content:center; padding:20px;">
+                    <div class="loading-spinner" id="pdfLoader" style="width:32px;height:32px; margin-top:50px;"></div>
+                    <canvas id="pdfCanvas" style="display:none;"></canvas>
+                    <div id="iframeContainer" style="width:100%;height:100%;display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Notes Panel -->
+            <div class="notes-panel">
+                <div class="notes-panel-header">
+                    <h5><i class="bi bi-journal-text"></i> Notes</h5>
+                    <span class="notes-save-status" id="noteStatus"></span>
+                </div>
+                <textarea class="notes-textarea" id="notesArea"
+                    placeholder="Take notes about this document..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/notes.js"></script>
+    <script>
+        if (!UserAuth.requireAuth()) { /* redirects */ }
+
+        const params = new URLSearchParams(window.location.search);
+        const courseId = params.get('courseId');
+        const sectionId = params.get('sectionId');
+        const contentId = params.get('contentId');
+        let noteSaveTimer = null;
+
+        // PDF State
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let scale = 1.0;
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+
+        async function init() {
+            if (!courseId || !sectionId || !contentId) { window.location.href = 'index.html'; return; }
+
+            try {
+                const content = await DB.getContent(courseId, sectionId, contentId);
+                if (!content) { document.getElementById('pdfTitle').textContent = 'Not found'; return; }
+
+                // ---- HF Token Injection ----
+                if (content.url && content.url.includes('huggingface.co')) {
+                    try {
+                        const token = await DB.getHFToken();
+                        if (token) {
+                            // Check for existing token to avoid duplication
+                            if (!content.url.includes('token=')) {
+                                const separator = content.url.includes('?') ? '&' : '?';
+                                content.url += `${separator}token=${token}`;
+                            }
+                        }
+                    } catch (e) { console.error('HF Token Error:', e); }
+                }
+
+                document.getElementById('pdfTitle').textContent = content.name || 'PDF';
+                document.title = `${content.name || 'PDF'} — Eduvance`;
+
+                // Download link
+                const dlBtn = document.getElementById('downloadBtn');
+                dlBtn.href = content.url || '#';
+
+                // Decide rendering method
+                const driveMatch = content.url && content.url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+
+                if (driveMatch) {
+                    // Google Drive -> Use Iframe
+                    document.getElementById('pdfLoader').style.display = 'none';
+                    const iframeC = document.getElementById('iframeContainer');
+                    iframeC.style.display = 'block';
+                    iframeC.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveMatch[1]}/preview" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>`;
+                } else if (content.url) {
+                    // Direct PDF -> Use PDF.js
+                    initPDF(content.url);
+                } else {
+                    document.getElementById('pdfArea').innerHTML = '<div style="color:var(--text-muted);margin-top:50px;">No PDF URL</div>';
+                }
+
+                // Load note
+                const user = UserAuth.getUser();
+                const note = await Notes.getNote(user.id, courseId, contentId);
+                if (note) document.getElementById('notesArea').value = note.text;
+
+            } catch (e) { console.error(e); }
+        }
+
+        // ---- PDF.js Logic ----
+        function initPDF(url) {
+            // Set worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+            const loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then(function (pdf) {
+                pdfDoc = pdf;
+                document.getElementById('pageCount').textContent = pdf.numPages;
+                document.getElementById('pdfLoader').style.display = 'none';
+                document.getElementById('pdfControls').style.display = 'flex';
+                canvas.style.display = 'block';
+
+                // Calculate initial scale to fit width
+                const containerWidth = document.getElementById('pdfArea').clientWidth - 40; // -padding
+                pdf.getPage(1).then(page => {
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    scale = containerWidth / viewport.width;
+                    renderPage(pageNum);
+                });
+            }, function (reason) {
+                console.error('Error: ' + reason);
+                document.getElementById('pdfLoader').style.display = 'none';
+                // Fallback to iframe if PDF.js fails (maybe not CORS?)
+                // But if CORS fails, iframe also likely fails x-frame-options?
+                // Just show error.
+                document.getElementById('pdfArea').innerHTML += `<div style="color:#d63031;margin-top:20px;">Error loading PDF: ${reason}<br><a href="${url}" target="_blank" style="color:var(--primary);text-decoration:underline;">Click to download/view</a></div>`;
+            });
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageNum').textContent = num;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function onZoomIn() {
+            scale += 0.2;
+            renderPage(pageNum);
+        }
+
+        function onZoomOut() {
+            if (scale <= 0.4) return;
+            scale -= 0.2;
+            renderPage(pageNum);
+        }
+
+        // Auto-save notes
+        document.getElementById('notesArea').addEventListener('input', () => {
+            document.getElementById('noteStatus').textContent = 'Typing...';
+            clearTimeout(noteSaveTimer);
+            noteSaveTimer = setTimeout(async () => {
+                const user = UserAuth.getUser();
+                const text = document.getElementById('notesArea').value;
+                await Notes.saveNote(user.id, courseId, sectionId, contentId, text);
+                document.getElementById('noteStatus').textContent = 'Saved ✓';
+            }, 1500);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

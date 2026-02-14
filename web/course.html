@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course — Eduvance</title>
+    <meta name="description" content="Course details and content on Eduvance LMS">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        /* ---- Course Detail Overrides ---- */
+        .course-hero {
+            background: var(--gradient-hero);
+            padding: 100px 24px 48px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .course-hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 36px;
+            align-items: flex-start;
+        }
+
+        .course-hero-info {
+            flex: 1;
+        }
+
+        .course-hero-info h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .cat-badge-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(108, 92, 231, 0.12);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            color: var(--primary-light);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 20px;
+        }
+
+        .cat-badge-inline i {
+            font-size: 0.7rem;
+        }
+
+        /* ---- Description Section ---- */
+        .desc-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px 0;
+        }
+
+        .desc-label {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .desc-label i {
+            color: var(--primary-light);
+            font-size: 1.1rem;
+        }
+
+        .desc-container {
+            position: relative;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .desc-container.collapsed {
+            max-height: 120px;
+        }
+
+        .desc-container.collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(transparent, var(--bg-body));
+            pointer-events: none;
+        }
+
+        .desc-content {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .desc-content p {
+            margin-bottom: 8px;
+        }
+
+        .desc-content ul,
+        .desc-content ol {
+            padding-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .show-more-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--primary-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s ease;
+        }
+
+        .show-more-btn:hover {
+            background: rgba(108, 92, 231, 0.08);
+            border-color: var(--primary);
+        }
+
+        /* ---- Course Content Section ---- */
+        .course-content-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 36px 24px 64px;
+        }
+
+        .content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .content-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-header h2 i {
+            color: var(--primary-light);
+            font-size: 1.1rem;
+        }
+
+        .content-stats {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+        }
+
+        .content-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .expand-all-btn {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: 0.2s ease;
+        }
+
+        .expand-all-btn:hover {
+            background: rgba(108, 92, 231, 0.08);
+        }
+
+        /* ---- Improved Section Accordion ---- */
+        .section-accordion {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+
+        .section-accordion:first-child {
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+
+        .section-accordion:last-child {
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+
+        .section-accordion:only-child {
+            border-radius: var(--radius-md);
+        }
+
+        .section-accordion+.section-accordion {
+            border-top: none;
+        }
+
+        .section-acc-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            background: rgba(108, 92, 231, 0.03);
+            transition: 0.2s ease;
+        }
+
+        .section-acc-header:hover {
+            background: rgba(108, 92, 231, 0.06);
+        }
+
+        .section-acc-header .chevron {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .section-acc-header.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .sec-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .sec-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .sec-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .section-acc-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .section-acc-body.open {
+            max-height: 3000px;
+        }
+
+        .content-list-item {
+            padding: 12px 20px 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-top: 1px solid rgba(108, 92, 231, 0.06);
+            transition: 0.2s ease;
+            cursor: pointer;
+        }
+
+        .content-list-item:hover {
+            background: rgba(108, 92, 231, 0.04);
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .item-icon.video {
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--primary-light);
+        }
+
+        .item-icon.pdf {
+            background: rgba(225, 112, 85, 0.12);
+            color: #E17055;
+        }
+
+        .item-icon.file {
+            background: rgba(0, 206, 201, 0.12);
+            color: var(--accent);
+        }
+
+        .item-name {
+            font-size: 0.88rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .course-hero-thumb {
+            width: 380px;
+            flex-shrink: 0;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .course-hero-thumb img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .course-hero-inner {
+                flex-direction: column;
+            }
+
+            .course-hero-thumb {
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .course-hero {
+                padding: 90px 16px 32px;
+            }
+
+            .course-hero-info h1 {
+                font-size: 1.5rem;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-edu">
+        <a href="index.html" class="navbar-brand">
+            <div class="logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <span>Eduvance</span>
+        </a>
+        <div class="navbar-actions" id="navActions"></div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <i class="bi bi-moon-fill" id="themeIcon"></i>
+        </button>
+        <button class="mobile-menu-btn" onclick="openMobileMenu()"><i class="bi bi-list"></i></button>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+    <div class="mobile-drawer" id="mobileDrawer">
+        <button class="mobile-drawer-close" onclick="closeMobileMenu()"><i class="bi bi-x-lg"></i></button>
+        <ul class="mobile-nav-links">
+            <li><a href="index.html"><i class="bi bi-house"></i> Home</a></li>
+            <li><a href="index.html#courses"><i class="bi bi-collection-play"></i> All Courses</a></li>
+            <div class="mobile-drawer-divider"></div>
+            <li id="mobileAuthLinks"></li>
+        </ul>
+    </div>
+
+    <div class="course-detail-page">
+        <!-- Course Hero: Name + Category + Thumb -->
+        <section class="course-hero">
+            <div class="course-hero-inner">
+                <div class="course-hero-info">
+                    <h1 id="courseTitle" class="animate-up">Loading...</h1>
+                    <div id="courseCatBadge" class="animate-up delay-1" style="display:none;">
+                        <span class="cat-badge-inline"><i class="bi bi-grid-3x3-gap-fill"></i> <span
+                                id="courseCat"></span></span>
+                    </div>
+                    <!-- Overall Progress -->
+                    <div id="courseProgressWrap" style="display:none; margin-top:12px; max-width:340px;">
+                        <div class="progress-bar-course" style="height:8px;">
+                            <div class="fill" id="courseProgressFill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-percent" id="courseProgressText">0% Complete</div>
+                    </div>
+                    <!-- Enroll / Enrolled Button -->
+                    <div style="margin-top:16px;" id="enrollBtnWrap"></div>
+                </div>
+                <div class="course-hero-thumb" id="courseThumbWrap" style="display:none;">
+                    <img id="courseThumb" src="" alt="">
+                </div>
+            </div>
+        </section>
+
+        <!-- Description Section -->
+        <section class="desc-section animate-up delay-2">
+            <div class="desc-label"><i class="bi bi-text-paragraph"></i> Description</div>
+            <div class="desc-container collapsed" id="descContainer">
+                <div class="desc-content" id="courseDesc">
+                    <p style="color:var(--text-muted);">Loading description...</p>
+                </div>
+            </div>
+            <button class="show-more-btn" id="showMoreBtn" onclick="toggleDescription()">
+                <i class="bi bi-chevron-down" id="showMoreIcon"></i> Show more
+            </button>
+        </section>
+
+        <!-- Course Content Section -->
+        <section class="course-content-section">
+            <div class="content-header">
+                <div>
+                    <h2><i class="bi bi-collection-play"></i> Course Content</h2>
+                    <div class="content-stats" id="contentStats" style="margin-top:6px;"></div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="expand-all-btn" id="downloadNotesBtn" onclick="downloadNotes()"
+                        style="display:none;">
+                        <i class="bi bi-file-earmark-pdf"></i> Download Notes
+                    </button>
+                    <button class="expand-all-btn" id="expandAllBtn" onclick="toggleAllSections()">
+                        <i class="bi bi-arrows-expand"></i> Expand all sections
+                    </button>
+                </div>
+            </div>
+            <div id="sectionsContainer">
+                <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                    <div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div>
+                    Loading content...
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Courses -->
+        <section class="related-courses-section" id="relatedCoursesSection" style="display:none;">
+            <h2><i class="bi bi-collection"></i> Related Courses</h2>
+            <div class="course-grid" id="relatedGrid"></div>
+        </section>
+    </div>
+
+    <!-- File Note Modal -->
+    <div id="noteModal"
+        style="display:none; position:fixed; inset:0; background:rgba(15,14,23,0.85); z-index:9999; align-items:center; justify-content:center; padding:24px;">
+        <div
+            style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; width:100%; max-width:500px; max-height:80vh; display:flex; flex-direction:column;">
+            <div
+                style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between;">
+                <h5 style="font-size:1rem; font-weight:600;"><i class="bi bi-journal-text"
+                        style="color:var(--primary-light); margin-right:8px;"></i>Notes</h5>
+                <button onclick="closeNoteModal()"
+                    style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i
+                        class="bi bi-x-lg"></i></button>
+            </div>
+            <textarea id="noteModalText" placeholder="Write your notes here..."
+                style="flex:1; min-height:200px; resize:none; background:var(--bg-input); border:none; color:var(--text-primary); padding:16px 20px; font-size:0.9rem; font-family:'Inter',sans-serif; line-height:1.7; outline:none;"></textarea>
+            <div
+                style="padding:12px 20px; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end; gap:8px;">
+                <span id="noteStatus"
+                    style="flex:1; font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center;"></span>
+                <button onclick="saveModalNote()" class="btn-primary-custom"
+                    style="padding:8px 20px; font-size:0.85rem;">
+                    <i class="bi bi-check-lg"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER FEATURES ===== -->
+    <section class="footer-features">
+        <div class="footer-features-inner">
+            <div class="footer-feature">
+                <div class="footer-feature-icon purple"><i class="bi bi-play-circle-fill"></i></div>
+                <div class="footer-feature-text">
+                    <h6>Video Lectures</h6>
+                    <p>HD quality lessons with subtitles</p>
+                </div>
+            </div>
+            <div class="footer-feature">
+                <div class="footer-feature-icon teal"><i class="bi bi-infinity"></i></div>
+                <div class="footer-feature-text">
+                    <h6>Lifetime Access</h6>
+                    <p>Learn at your own pace</p>
+                </div>
+            </div>
+            <div class="footer-feature">
+                <div class="footer-feature-icon orange"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                <div class="footer-feature-text">
+                    <h6>PDF Resources</h6>
+                    <p>Downloadable study materials</p>
+                </div>
+            </div>
+            <div class="footer-feature">
+                <div class="footer-feature-icon green"><i class="bi bi-shield-check"></i></div>
+                <div class="footer-feature-text">
+                    <h6>Secure Platform</h6>
+                    <p>Your data is always safe</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-edu">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <a href="index.html" class="navbar-brand">
+                    <div class="logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
+                    <span>Eduvance</span>
+                </a>
+                <p>Empowering learners with professional-grade courses and resources.</p>
+                <div class="footer-socials">
+                    <a href="#" class="footer-social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="footer-social-icon" title="YouTube"><i class="bi bi-youtube"></i></a>
+                    <a href="#" class="footer-social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="footer-social-icon" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h6>Platform</h6>
+                <a href="index.html"><i class="bi bi-chevron-right"></i> Home</a>
+                <a href="index.html#courses"><i class="bi bi-chevron-right"></i> All Courses</a>
+                <a href="signup.html"><i class="bi bi-chevron-right"></i> Sign Up</a>
+                <a href="login.html"><i class="bi bi-chevron-right"></i> Login</a>
+            </div>
+            <div class="footer-links">
+                <h6>Resources</h6>
+                <a href="#"><i class="bi bi-chevron-right"></i> Video Tutorials</a>
+                <a href="#"><i class="bi bi-chevron-right"></i> PDF Materials</a>
+                <a href="#"><i class="bi bi-chevron-right"></i> FAQs</a>
+            </div>
+            <div class="footer-links">
+                <h6>Company</h6>
+                <a href="#"><i class="bi bi-chevron-right"></i> About Eduvance</a>
+                <a href="#"><i class="bi bi-chevron-right"></i> Contact Us</a>
+                <a href="#"><i class="bi bi-chevron-right"></i> Blog</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2025 Eduvance. All rights reserved.</span>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/notes.js"></script>
+    <script>
+        let courseId = null;
+        let courseData = null;
+        let categoryMap = {};
+        let currentNoteInfo = {};
+        let allExpanded = false;
+        let totalSections = 0;
+        let totalItems = 0;
+        let totalVideos = 0;
+        let totalPdfs = 0;
+        let totalFiles = 0;
+        let allSectionsData = []; // For progress tracking
+
+        // ---- Theme ----
+        function initTheme() {
+            const saved = localStorage.getItem('eduvance-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            const icon = saved === 'light' ? 'bi-sun-fill' : 'bi-moon-fill';
+            document.getElementById('themeIcon').className = 'bi ' + icon;
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('eduvance-theme', next);
+            document.getElementById('themeIcon').className = 'bi ' + (next === 'light' ? 'bi-sun-fill' : 'bi-moon-fill');
+        }
+        initTheme();
+
+        // ---- Mobile Menu ----
+        function openMobileMenu() {
+            document.getElementById('mobileOverlay').classList.add('show');
+            document.getElementById('mobileDrawer').classList.add('show');
+        }
+        function closeMobileMenu() {
+            document.getElementById('mobileOverlay').classList.remove('show');
+            document.getElementById('mobileDrawer').classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateNav();
+            courseId = new URLSearchParams(window.location.search).get('id');
+            if (!courseId) { window.location.href = 'index.html'; return; }
+            await loadCourse();
+        });
+
+        function updateNav() {
+            const nav = document.getElementById('navActions');
+            const mobileAuth = document.getElementById('mobileAuthLinks');
+            const user = UserAuth.isLoggedIn() ? UserAuth.getUser() : null;
+            if (user) {
+                nav.innerHTML = `
+          <div class="user-menu" onclick="this.querySelector('#userDD').style.display=this.querySelector('#userDD').style.display==='none'?'block':'none'">
+            <div class="user-avatar-sm"><i class="bi bi-person-fill"></i></div>
+            <span class="user-name-sm">${esc(user.name)}</span>
+            <div id="userDD" style="display:none;position:absolute;top:60px;right:24px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:8px;min-width:140px;box-shadow:var(--shadow-lg);z-index:1001;">
+              <a href="#" onclick="UserAuth.logout();return false;" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:0.85rem;color:var(--text-secondary);"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </div>
+          </div>`;
+                if (mobileAuth) mobileAuth.innerHTML = `<a href="#" onclick="UserAuth.logout();closeMobileMenu();return false;"><i class="bi bi-box-arrow-left"></i> Logout</a>`;
+            } else {
+                nav.innerHTML = `<a href="login.html" class="btn-login"><i class="bi bi-box-arrow-in-right"></i> <span>Login</span></a>
+          <a href="signup.html" class="btn-signup"><i class="bi bi-person-plus"></i> <span>Sign Up</span></a>`;
+                if (mobileAuth) mobileAuth.innerHTML = `<a href="login.html"><i class="bi bi-box-arrow-in-right"></i> Login</a><a href="signup.html"><i class="bi bi-person-plus"></i> Sign Up</a>`;
+            }
+        }
+
+        async function loadCourse() {
+            try {
+                const [course, cats] = await Promise.all([DB.getCourse(courseId), DB.getAllCategories()]);
+                if (!course) { document.getElementById('courseTitle').textContent = 'Course not found'; return; }
+                courseData = course;
+                cats.forEach(c => categoryMap[c.id] = c.name);
+
+                document.title = `${course.name} — Eduvance`;
+
+                // Course Name
+                document.getElementById('courseTitle').textContent = course.name || '';
+
+                // Category badge
+                const catName = categoryMap[course.categoryId] || '';
+                if (catName) {
+                    document.getElementById('courseCat').textContent = catName;
+                    document.getElementById('courseCatBadge').style.display = 'block';
+                }
+
+                // Thumbnail
+                if (course.thumbnail) {
+                    document.getElementById('courseThumb').src = course.thumbnail;
+                    document.getElementById('courseThumbWrap').style.display = 'block';
+                }
+
+                // Description
+                // Description
+                const descEl = document.getElementById('courseDesc');
+                let descHtml = course.description || '<p style="color:var(--text-muted);">No description available.</p>';
+
+                // Unescape HTML if it looks like it was double-escaped or saved as text
+                // formatting: &lt;div style=... -> <div style=...
+                const txt = document.createElement('textarea');
+                txt.innerHTML = descHtml;
+                descHtml = txt.value;
+
+                descEl.innerHTML = descHtml;
+
+                // Auto-check if description is short, no need for show more
+                requestAnimationFrame(() => {
+                    const containerEl = document.getElementById('descContainer');
+                    if (containerEl.scrollHeight <= 130) {
+                        containerEl.classList.remove('collapsed');
+                        document.getElementById('showMoreBtn').style.display = 'none';
+                    }
+                });
+
+                // Sections
+                const sections = await DB.getSections(courseId);
+                const container = document.getElementById('sectionsContainer');
+
+                if (sections.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);"><i class="bi bi-inbox" style="font-size:2.5rem;display:block;margin-bottom:8px;opacity:0.4;"></i>No content yet</div>';
+                    document.getElementById('expandAllBtn').style.display = 'none';
+                    document.getElementById('contentStats').style.display = 'none';
+                    return;
+                }
+
+                let html = '';
+                totalSections = sections.length;
+                totalItems = 0;
+                totalVideos = 0;
+                totalPdfs = 0;
+                totalFiles = 0;
+
+                for (let i = 0; i < sections.length; i++) {
+                    const sec = sections[i];
+                    const contents = await DB.getContents(courseId, sec.id);
+                    totalItems += contents.length;
+                    contents.forEach(c => {
+                        if (c.type === 'video') totalVideos++;
+                        else if (c.type === 'pdf') totalPdfs++;
+                        else totalFiles++;
+                    });
+                    html += renderSection(sec, contents, i);
+                }
+
+                container.innerHTML = html;
+
+                // Stats line
+                let statsHtml = `<span><i class="bi bi-folder2-open"></i> ${totalSections} section${totalSections !== 1 ? 's' : ''}</span>`;
+                statsHtml += `<span><i class="bi bi-file-earmark-play"></i> ${totalItems} lecture${totalItems !== 1 ? 's' : ''}</span>`;
+                if (totalVideos > 0) statsHtml += `<span><i class="bi bi-play-circle"></i> ${totalVideos} video${totalVideos !== 1 ? 's' : ''}</span>`;
+                if (totalPdfs > 0) statsHtml += `<span><i class="bi bi-file-earmark-pdf"></i> ${totalPdfs} PDF${totalPdfs !== 1 ? 's' : ''}</span>`;
+                if (totalFiles > 0) statsHtml += `<span><i class="bi bi-file-earmark-arrow-down"></i> ${totalFiles} file${totalFiles !== 1 ? 's' : ''}</span>`;
+                document.getElementById('contentStats').innerHTML = statsHtml;
+
+                // Enrollment + Progress
+                await loadEnrollmentAndProgress();
+                // Related courses
+                await loadRelatedCourses();
+
+            } catch (e) { console.error(e); }
+        }
+
+        // ---- Enrollment ----
+        async function loadEnrollmentAndProgress() {
+            const user = UserAuth.isLoggedIn() ? UserAuth.getUser() : null;
+            const wrap = document.getElementById('enrollBtnWrap');
+
+            // Show download notes button for logged-in users
+            if (user) {
+                document.getElementById('downloadNotesBtn').style.display = 'flex';
+            }
+
+            if (!user) {
+                wrap.innerHTML = `<button class="btn-enroll" onclick="promptLogin()"><i class="bi bi-lock-fill"></i> Login to Enroll</button>`;
+                return;
+            }
+
+            const enrolled = await DB.isEnrolled(user.id, courseId);
+            if (enrolled) {
+                wrap.innerHTML = `<button class="btn-enroll enrolled" onclick="unenrollCourse()"><i class="bi bi-check-circle-fill"></i> Enrolled</button>`;
+                // Load progress
+                await loadCourseProgress(user.id);
+            } else {
+                wrap.innerHTML = `<button class="btn-enroll" onclick="enrollCourse()"><i class="bi bi-plus-circle"></i> Enroll Now</button>`;
+            }
+        }
+
+        async function enrollCourse() {
+            const user = UserAuth.getUser();
+            if (!user) { promptLogin(); return; }
+            try {
+                await DB.enrollCourse(user.id, courseId);
+                showToast('Enrolled successfully!', 'success');
+                await loadEnrollmentAndProgress();
+            } catch (e) { showToast('Failed to enroll', 'error'); }
+        }
+
+        async function unenrollCourse() {
+            const user = UserAuth.getUser();
+            if (!user) return;
+            try {
+                await DB.unenrollCourse(user.id, courseId);
+                showToast('Unenrolled', 'info');
+                document.getElementById('courseProgressWrap').style.display = 'none';
+                await loadEnrollmentAndProgress();
+            } catch (e) { showToast('Failed', 'error'); }
+        }
+
+        // ---- Progress ----
+        async function loadCourseProgress(userId) {
+            try {
+                const progress = await DB.getCourseProgress(userId, courseId);
+                const completed = progress.filter(p => p.completed).length;
+                const pct = totalItems > 0 ? Math.round((completed / totalItems) * 100) : 0;
+
+                document.getElementById('courseProgressFill').style.width = pct + '%';
+                document.getElementById('courseProgressText').textContent = `${pct}% Complete (${completed}/${totalItems})`;
+                document.getElementById('courseProgressWrap').style.display = 'block';
+
+                // Mark completed items
+                progress.forEach(p => {
+                    if (p.completed) {
+                        const items = document.querySelectorAll(`.content-list-item[data-content-id="${p.contentId}"]`);
+                        items.forEach(item => {
+                            const icon = item.querySelector('.item-icon i');
+                            if (icon) { icon.className = 'bi bi-check-circle-fill'; icon.style.color = '#55EFC4'; }
+                        });
+                    }
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // ---- Related Courses ----
+        async function loadRelatedCourses() {
+            if (!courseData || !courseData.categoryId) return;
+            try {
+                const related = await DB.getCoursesByCategory(courseData.categoryId);
+                const filtered = related.filter(c => c.id !== courseId).slice(0, 4);
+                if (filtered.length === 0) return;
+
+                const grid = document.getElementById('relatedGrid');
+                grid.innerHTML = filtered.map((course, i) => {
+                    const catName = categoryMap[course.categoryId] || '';
+                    const thumb = course.thumbnail
+                        ? `<img src="${esc(course.thumbnail)}" alt="${esc(course.name)}" loading="lazy">`
+                        : `<i class="bi bi-book-half thumb-placeholder"></i>`;
+                    return `
+                    <div class="course-card animate-up delay-${(i % 4) + 1}" onclick="window.location.href='course.html?id=${course.id}'">
+                        <div class="course-card-thumb">${thumb}</div>
+                        <div class="course-card-body">
+                            ${catName ? `<div class="course-card-category">${esc(catName)}</div>` : ''}
+                            <div class="course-card-title">${esc(course.name || 'Untitled')}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+                document.getElementById('relatedCoursesSection').style.display = 'block';
+            } catch (e) { console.error(e); }
+        }
+
+        // ---- Description Show More/Less ----
+        function toggleDescription() {
+            const container = document.getElementById('descContainer');
+            const btn = document.getElementById('showMoreBtn');
+            const icon = document.getElementById('showMoreIcon');
+            const isCollapsed = container.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                container.classList.remove('collapsed');
+                container.style.maxHeight = container.scrollHeight + 'px';
+                btn.innerHTML = '<i class="bi bi-chevron-up"></i> Show less';
+            } else {
+                container.classList.add('collapsed');
+                container.style.maxHeight = '';
+                btn.innerHTML = '<i class="bi bi-chevron-down"></i> Show more';
+            }
+        }
+
+        // ---- Expand/Collapse All ----
+        function toggleAllSections() {
+            allExpanded = !allExpanded;
+            const headers = document.querySelectorAll('.section-acc-header');
+            const bodies = document.querySelectorAll('.section-acc-body');
+            const btn = document.getElementById('expandAllBtn');
+
+            headers.forEach(h => {
+                allExpanded ? h.classList.add('open') : h.classList.remove('open');
+            });
+            bodies.forEach(b => {
+                allExpanded ? b.classList.add('open') : b.classList.remove('open');
+            });
+
+            btn.innerHTML = allExpanded
+                ? '<i class="bi bi-arrows-collapse"></i> Collapse all sections'
+                : '<i class="bi bi-arrows-expand"></i> Expand all sections';
+        }
+
+        function renderSection(sec, contents, idx) {
+            const isOpen = idx === 0;
+            let itemsHTML = contents.map(c => renderContentItem(sec.id, c)).join('');
+
+            const videoCount = contents.filter(c => c.type === 'video').length;
+            const pdfCount = contents.filter(c => c.type === 'pdf').length;
+            const fileCount = contents.filter(c => c.type === 'file').length;
+
+            let metaParts = [];
+            if (contents.length > 0) metaParts.push(`${contents.length} lecture${contents.length !== 1 ? 's' : ''}`);
+
+            return `
+        <div class="section-accordion animate-up delay-${(idx % 4) + 1}">
+          <div class="section-acc-header ${isOpen ? 'open' : ''}" onclick="toggleAcc(this)">
+            <i class="bi bi-chevron-down chevron"></i>
+            <span class="sec-title">${esc(sec.name || 'Section ' + (idx + 1))}</span>
+            <div class="sec-meta">
+              <span>${metaParts.join(' • ')}</span>
+            </div>
+          </div>
+          <div class="section-acc-body ${isOpen ? 'open' : ''}">
+            ${itemsHTML || '<div style="padding:16px 24px; color:var(--text-muted); font-size:0.85rem;">No items</div>'}
+          </div>
+        </div>`;
+        }
+
+        function renderContentItem(sectionId, content) {
+            const icons = { video: 'bi-play-circle-fill', pdf: 'bi-file-earmark-pdf-fill', file: 'bi-file-earmark-arrow-down-fill' };
+            const iconClass = icons[content.type] || 'bi-file-earmark';
+            const isLoggedIn = UserAuth.isLoggedIn();
+
+            let actions = '';
+            if (content.type === 'video') {
+                actions = isLoggedIn
+                    ? `<a href="player.html?courseId=${courseId}&sectionId=${sectionId}&contentId=${content.id}" style="color:var(--primary-light); font-size:0.82rem; font-weight:600; display:flex; align-items:center; gap:4px; white-space:nowrap;"><i class="bi bi-play-fill"></i> Play</a>`
+                    : `<span class="lock-icon" style="color:var(--text-muted);"><i class="bi bi-lock-fill"></i></span>`;
+            } else if (content.type === 'pdf') {
+                actions = isLoggedIn
+                    ? `<div style="display:flex;gap:10px;align-items:center;">
+               <a href="pdf.html?courseId=${courseId}&sectionId=${sectionId}&contentId=${content.id}" style="color:var(--primary-light); font-size:0.82rem; font-weight:600; white-space:nowrap;"><i class="bi bi-eye"></i> View</a>
+               <a href="${esc(content.url || '#')}" target="_blank" download style="color:var(--accent); font-size:0.85rem;"><i class="bi bi-download"></i></a>
+               <button onclick="event.stopPropagation();openNoteModal('${sectionId}','${content.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;" title="Notes"><i class="bi bi-journal-text"></i></button>
+             </div>`
+                    : `<span class="lock-icon" style="color:var(--text-muted);"><i class="bi bi-lock-fill"></i></span>`;
+            } else {
+                actions = isLoggedIn
+                    ? `<div style="display:flex;gap:10px;align-items:center;">
+               <a href="${esc(content.url || '#')}" target="_blank" download style="color:var(--accent); font-size:0.82rem; font-weight:600; white-space:nowrap;"><i class="bi bi-download"></i> Download</a>
+               <button onclick="event.stopPropagation();openNoteModal('${sectionId}','${content.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;" title="Notes"><i class="bi bi-journal-text"></i></button>
+             </div>`
+                    : `<span class="lock-icon" style="color:var(--text-muted);"><i class="bi bi-lock-fill"></i></span>`;
+            }
+
+            return `
+        <div class="content-list-item" data-content-id="${content.id}" ${!isLoggedIn ? 'onclick="promptLogin()"' : ''}>
+          <div class="item-info">
+            <div class="item-icon ${content.type}"><i class="bi ${iconClass}"></i></div>
+            <span class="item-name">${esc(content.name || 'Untitled')}</span>
+          </div>
+          ${actions}
+        </div>`;
+        }
+
+        function toggleAcc(header) {
+            header.classList.toggle('open');
+            header.nextElementSibling.classList.toggle('open');
+        }
+
+        function promptLogin() {
+            if (!UserAuth.isLoggedIn()) {
+                showToast('Please login to access this content', 'info');
+                setTimeout(() => window.location.href = 'login.html', 1200);
+            }
+        }
+
+        // ---- Note Modal ----
+        async function openNoteModal(sectionId, contentId) {
+            if (!UserAuth.isLoggedIn()) { promptLogin(); return; }
+            currentNoteInfo = { sectionId, contentId };
+            const modal = document.getElementById('noteModal');
+            const textarea = document.getElementById('noteModalText');
+            const status = document.getElementById('noteStatus');
+            modal.style.display = 'flex';
+            textarea.value = '';
+            status.textContent = 'Loading...';
+
+            const user = UserAuth.getUser();
+            const note = await Notes.getNote(user.id, courseId, contentId);
+            textarea.value = note ? note.text : '';
+            status.textContent = note ? 'Last saved' : '';
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').style.display = 'none';
+        }
+
+        async function saveModalNote() {
+            const user = UserAuth.getUser();
+            const text = document.getElementById('noteModalText').value;
+            const status = document.getElementById('noteStatus');
+            status.textContent = 'Saving...';
+            await Notes.saveNote(user.id, courseId, currentNoteInfo.sectionId, currentNoteInfo.contentId, text);
+            status.textContent = 'Saved ✓';
+            showToast('Note saved!', 'success');
+        }
+
+        // ---- Download Notes as PDF ----
+        async function downloadNotes() {
+            const user = UserAuth.getUser();
+            if (!user) { promptLogin(); return; }
+            await Notes.downloadAsPDF(user.id, courseId, courseData?.name || 'Course');
+        }
+
+        // ---- Helpers ----
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+        function showToast(msg, type = 'info') {
+            const c = document.getElementById('toastContainer');
+            const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', info: 'bi-info-circle-fill' };
+            const t = document.createElement('div'); t.className = `toast-item ${type}`;
+            t.innerHTML = `<i class="bi ${icons[type]} toast-icon"></i><span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button>`;
+            c.appendChild(t); setTimeout(() => t.remove(), 3500);
+        }
+    </script>
+</body>
+
+</html>
